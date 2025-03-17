@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages</title>
+    {% load static %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+            integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<div class="parent">
+    <div class="child-2">
+        <center><h2>Chats</h2></center>
+        <hr>
+        <div class="chat-body-parent">
+            <div class="chat-body" id="tasks">
+                <div class="message" id="chatContainer">
+                    <!-- received messages and displayed here -->
+                    {% for i in messages %}
+                    {% if i.sender != user %}
+                    <div class="receive">
+                        <div class="sender-name">{{ i.sender }}</div>
+                        <p style="color: #000;">{{ i.message }}</p>
+                        {% if i.date %}
+                        <span class="time">{{ i.date|date:"H:i" }}</span>
+                        {% else %}
+                        <span class="time">Non disponible</span>
+                        {% endif %}
+
+                    </div>
+                    {% else %}
+                    <div class="send">
+                        <p style="color: #000;">{{i.message}}</p>
+                        {% if i.date %}
+                        <span class="time">{{ i.date|date:"H:i" }}</span>
+                        {% else %}
+                        <span class="time">Non disponible</span>
+                        {% endif %}
+
+
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    <!-- end receive messages -->
+                </div>
+
+                <div class="form">
+                    <form action="" id="message-form" method="POST">
+                        {% csrf_token %}
+                        <textarea id="msg" cols="30" name="message" rows="10" placeholder="Enter your message"
+                                  required></textarea>
+                        <button class="submit" type="submit">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    function scrollToBottom() {
+        var chatContainer = document.getElementById("chatContainer");
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    const websocketProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsEndpoint = `${websocketProtocol}://${window.location.host}/ws/notification/{{room_name}}/`;
+    const socket = new WebSocket(wsEndpoint);
+
+
+    // Se déclenche lorsque la connexion WebSocket est ouverte
+    socket.onopen = (event) => {
+        console.log("WebSocket connection opened!");
+    };
+
+    // Se déclenche lorsque la connexion WebSocket est fermée
+    socket.onclose = (event) => {
+        console.log("WebSocket connection closed!");
+    };
+
+    // Form submit listener
+    // Ajoute un écouteur d'événement pour la soumission du formulaire de message
+    document.getElementById('message-form').addEventListener('submit', function(event){
+        event.preventDefault();
+        // Récupère la valeur du champ de message
+        const message = document.getElementById('msg').value;
+        // Envoie le message via WebSocket, en format JSON avec les informations nécessaires
+        socket.send(
+            JSON.stringify({
+                'message': message,
+                'room_name': '{{room_name}}',
+                'sender': '{{user}}',
+            })
+        );
+    });
+
+        // Response from consumer on the server
+    socket.addEventListener("message", (event) => {
+        const messageData = JSON.parse(event.data)['message'];
+        console.log(messageData);
+
+        var sender = messageData['sender'];
+        var message = messageData['message'];
+
+
+        // Vider le champ de saisie du message après que le message ait été envoyé.
+        if (sender == '{{user}}'){
+            document.getElementById('msg').value = '';
+        }
+
+        var messageDiv = document.querySelector('.message');
+        // Vérifie si le message n'a pas été envoyé par l'utilisateur actuel.
+        if (sender != '{{user}}') {
+            // Si le message vient d'un autre utilisateur, l'ajouter dans un bloc de réception avec un style personnalisé.
+            messageDiv.innerHTML += '<div class="receive"><p style="color: #000;">' + message + '<strong>-' + sender + '</strong></p></div>';
+        } else {
+            // Si le message vient de l'utilisateur actuel, l'ajouter dans un bloc d'envoi avec un style personnalisé.
+            messageDiv.innerHTML += '<div class="send"><p style="color: #000;">' + message + '</p></div>';
+        }
+        scrollToBottom();
+    });
+
+</script>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.parent {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 800px;
+    text-align: center;
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #ddd;
+    margin-bottom: 15px;
+}
+
+.chat-body-parent {
+    display: flex;
+    flex-direction: column;
+    max-height: 600px;
+}
+
+.chat-body {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #fafafa;
+    overflow-y: scroll;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+}
+
+.receive, .send {
+    position: relative;
+    padding: 10px;
+    margin: 7px;
+    border-radius: 8px;
+    font-size: 17px;
+    max-width: 80%;
+}
+.sender-name {
+    font-weight: bold;
+    color: #555;
+    font-size: 16px;
+    margin-bottom: 3px;
+    text-align: left;
+}
+.time {
+    font-size: 15px;
+    color: gray;
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+}
+
+.receive {
+    background: #e0e0e0;
+    align-self: flex-start;
+}
+
+.send {
+    background: #BB1828;
+    color: white;
+    align-self: flex-end;
+}
+
+.form {
+    margin-top: 15px;
+}
+
+textarea {
+    width: 95%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 18px;
+    resize: none;
+    outline: none;
+    min-height: 60px;
+}
+
+textarea:focus {
+    border-color: #BB1828;
+    box-shadow: 0 0 5px rgba(187, 24, 40, 0.5);
+}
+
+button.submit {
+    background-color: #BB1828;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    width: 100%;
+    margin-top: 15px;
+    transition: background 0.3s ease;
+}
+
+button.submit:hover {
+    background-color: #a31522;
+}
+
+</style>
+</html>

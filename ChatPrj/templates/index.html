@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter Room</title>
+</head>
+<body>
+    <div class="parent">
+        <div class="child">
+            <h1>Join a Room</h1>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <label for="">Username</label><br>
+                <input type="text" placeholder="Enter your name" name="username" required><br>
+                <label for="">Room</label><br>
+                <input type="text" placeholder="Enter room name" name="room" required><br>
+                <center><button type="submit">Submit</button></center><br>
+            </form>
+        </div>
+    </div>
+</body>
+
+<style>
+            body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .parent {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+            text-align: left;
+        }
+
+        input {
+            width: 94%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #BB1828;
+            box-shadow: 0 0 5px rgba(187, 24, 40, 0.5);
+        }
+
+        button {
+            background-color: #BB1828;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #a31522;
+        }
+</style>
+</html>
